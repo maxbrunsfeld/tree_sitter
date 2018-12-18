@@ -85,7 +85,7 @@ class ParseTableBuilderImpl : public ParseTableBuilder {
 
     // Add the starting state.
     Symbol start_symbol = Symbol::non_terminal(0);
-    Production start_production({{start_symbol, 0, rules::AssociativityNone, rules::Alias{}}}, 0);
+    Production start_production({{start_symbol, 0, rules::AssociativityNone, rules::Alias{}, false}}, 0);
 
     add_parse_state({}, {}, ParseItemSet{{
       {
@@ -288,7 +288,17 @@ class ParseTableBuilderImpl : public ParseTableBuilder {
       // If the item is unfinished, create a new item by advancing one symbol.
       // Add that new item to a successor item set.
       } else {
-        Symbol symbol = item.production->at(item.step_index).symbol;
+        const ProductionStep &step = item.production->at(item.step_index);
+        Symbol symbol = step.symbol;
+
+        // For tokens that have been explicitly `EXCLUDED`, add an *empty* entry.
+        // This is different from having *no* entry, and is used later, when
+        // generating the C code for the parse table.
+        if (step.is_excluded) {
+          parse_table.states[state_id].terminal_entries[symbol];
+          continue;
+        }
+
         ParseItem new_item(item.lhs(), *item.production, item.step_index + 1);
 
         if (symbol.is_non_terminal()) {
@@ -546,7 +556,7 @@ class ParseTableBuilderImpl : public ParseTableBuilder {
     // Only merge parse states by allowing existing reductions to happen
     // with additional lookahead tokens. Do not alter parse states in ways
     // that allow entirely new types of actions to happen.
-    if (entry.actions.back().type != ParseActionTypeReduce) return false;
+    if (!entry.actions.empty() && entry.actions.back().type != ParseActionTypeReduce) return false;
     if (!has_actions(state, entry)) return false;
 
     // Do not add external tokens; they could conflict lexically with any of the state's
@@ -588,7 +598,7 @@ class ParseTableBuilderImpl : public ParseTableBuilder {
     for (auto &left_entry : left_state.terminal_entries) {
       Symbol lookahead = left_entry.first;
       const auto &right_entry = right_state.terminal_entries.find(lookahead);
-      if (right_entry == right_state.terminal_entries.end()) {
+      if (right_entry == right_state.terminal_entries.end() || right_entry->second.actions.empty()) {
         if (!can_add_entry_to_state(right_state, lookahead, left_entry.second)) return false;
       } else {
         if (right_entry->second.actions != left_entry.second.actions) return false;

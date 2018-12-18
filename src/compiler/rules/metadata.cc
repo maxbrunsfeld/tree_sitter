@@ -151,6 +151,12 @@ Metadata Metadata::main_token(Rule &&rule) {
   });
 }
 
+Metadata Metadata::exclude(Rule &&rule) {
+  return add_metadata(move(rule), [&](MetadataParams &params) {
+    params.is_excluded = true;
+  });
+}
+
 Metadata Metadata::alias(string &&value, bool is_named, Rule &&rule) {
   return add_metadata(move(rule), [&](MetadataParams &params) {
     params.alias.value = move(value);

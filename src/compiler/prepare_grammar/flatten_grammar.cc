@@ -24,6 +24,7 @@ class FlattenRule {
   vector<int> precedence_stack;
   vector<rules::Associativity> associativity_stack;
   vector<rules::Alias> alias_stack;
+  uint32_t token_exclusion_depth;
   Production production;
 
   void apply(const Rule &rule, bool at_end) {
@@ -33,11 +34,16 @@ class FlattenRule {
           symbol,
           precedence_stack.back(),
           associativity_stack.back(),
-          alias_stack.back()
+          alias_stack.back(),
+          token_exclusion_depth > 0
         });
       },
 
       [&](const rules::Metadata &metadata) {
+        if (metadata.params.is_excluded) {
+          token_exclusion_depth++;
+        }
+
         if (metadata.params.has_precedence) {
           precedence_stack.push_back(metadata.params.precedence);
         }
@@ -55,6 +61,10 @@ class FlattenRule {
         }
 
         apply(*metadata.rule, at_end);
+
+        if (metadata.params.is_excluded) {
+          token_exclusion_depth--;
+        }
 
         if (metadata.params.has_precedence) {
           precedence_stack.pop_back();
@@ -88,7 +98,8 @@ class FlattenRule {
   FlattenRule() :
     precedence_stack({0}),
     associativity_stack({rules::AssociativityNone}),
-    alias_stack({rules::Alias{}}) {}
+    alias_stack({rules::Alias{}}),
+    token_exclusion_depth(false) {}
 
   Production flatten(const Rule &rule) {
     apply(rule, true);

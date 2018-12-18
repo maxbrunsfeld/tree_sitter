@@ -34,6 +34,12 @@ static inline const TSParseAction *ts_language_actions(const TSLanguage *self,
   return entry.actions;
 }
 
+static inline bool ts_language_allows_lookahead(const TSLanguage *self,
+                                                TSStateId state,
+                                                TSSymbol symbol) {
+   return self->parse_table[state * self->symbol_count + symbol] != 0;
+}
+
 static inline bool ts_language_has_actions(const TSLanguage *self,
                                            TSStateId state,
                                            TSSymbol symbol) {

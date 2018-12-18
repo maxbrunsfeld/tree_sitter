@@ -464,7 +464,16 @@ class CCodeGenerator {
   }
 
   void add_parse_table() {
-    add_parse_action_list_id(ParseTableEntry{ {}, false });
+    // The empty list of actions appears *twice* in the table, at both index zero and
+    // index one. This is used to distinguish between two different behaviors for
+    // a given lookahead token. Action list zero is the default value for entries
+    // in the parse table that aren't initialized. It indicates that a lookahead
+    // symbol is not valid. Action list one is only used for lookahead symbols that
+    // are not valid syntactically, but are valid for the purpose of tokenization,
+    // because they have been explicitly excluded using the `EXCLUDE` rule.
+    parse_table_entries.push_back({0, ParseTableEntry{{}, false}});
+    parse_table_entries.push_back({1, ParseTableEntry{{}, false}});
+    next_parse_action_list_index = 2;
 
     size_t state_id = 0;
     line("static uint16_t ts_parse_table[STATE_COUNT][SYMBOL_COUNT] = {");
@@ -480,7 +489,16 @@ class CCodeGenerator {
           }
           for (const auto &entry : state.terminal_entries) {
             line("[" + symbol_id(entry.first) + "] = ACTIONS(");
-            add(to_string(add_parse_action_list_id(entry.second)));
+
+            // If `terminal_entries` contains an entry for a symbol but the entry has
+            // no actions, that means that the symbol has been explicitly excluded using
+            // `EXCLUDE` (see the comment above). Use action list `1` for these symbols
+            // to differentiate them from normal invalid symbols.
+            if (entry.second.actions.empty()) {
+              add("1");
+            } else {
+              add(to_string(add_parse_action_list_id(entry.second)));
+            }
             add("),");
           }
         });

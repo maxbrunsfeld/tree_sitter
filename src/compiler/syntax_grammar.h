@@ -14,6 +14,7 @@ struct ProductionStep {
   int precedence;
   rules::Associativity associativity;
   rules::Alias alias;
+  bool is_excluded;
 
   bool operator==(const ProductionStep &) const;
   bool operator!=(const ProductionStep &) const;

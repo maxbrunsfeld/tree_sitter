@@ -6,7 +6,8 @@ bool ProductionStep::operator==(const ProductionStep &other) const {
   return symbol == other.symbol &&
     precedence == other.precedence &&
     associativity == other.associativity &&
-    alias == other.alias;
+    alias == other.alias &&
+    is_excluded == other.is_excluded;
 }
 
 bool ProductionStep::operator!=(const ProductionStep &other) const {
@@ -20,6 +21,8 @@ bool ProductionStep::operator<(const ProductionStep &other) const {
  if (other.precedence < precedence) return false;
  if (associativity < other.associativity) return true;
  if (other.associativity < associativity) return false;
+ if (is_excluded < other.is_excluded) return true;
+ if (other.is_excluded < is_excluded) return false;
  return alias < other.alias;
 }
 

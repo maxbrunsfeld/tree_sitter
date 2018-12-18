@@ -1,0 +1,12 @@
+==============
+Declarations
+==============
+
+int a;
+int int;
+
+---
+
+(program
+  (declaration (type (primitive_type)) (identifier))
+  (ERROR (type (primitive_type)) (primitive_type)))

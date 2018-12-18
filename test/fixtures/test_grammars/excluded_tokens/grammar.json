@@ -1,0 +1,46 @@
+{
+  "name": "excluded_tokens",
+
+  "extras": [
+    {"type": "PATTERN", "value": "\\s"}
+  ],
+
+  "rules": {
+    "program": {
+      "type": "REPEAT",
+      "content": {"type": "SYMBOL", "name": "declaration"}
+    },
+
+    "declaration": {
+      "type": "SEQ",
+      "members": [
+        {"type": "SYMBOL", "name": "type"},
+        {
+          "type": "CHOICE",
+          "members": [
+            {"type": "SYMBOL", "name": "identifier"},
+            {
+              "type": "EXCLUDE",
+              "content": {"type": "SYMBOL", "name": "primitive_type"}
+            }
+          ]
+        },
+        {
+          "type": "STRING",
+          "value": ";"
+        }
+      ]
+    },
+
+    "type": {
+      "type": "CHOICE",
+      "members": [
+        {"type": "SYMBOL", "name": "identifier"},
+        {"type": "SYMBOL", "name": "primitive_type"}
+      ]
+    },
+
+    "primitive_type": {"type": "STRING", "value": "int"},
+    "identifier": {"type": "PATTERN", "value": "[a-zA-Z]+"}
+  }
+}

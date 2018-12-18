@@ -81,7 +81,7 @@ ParseItemSetBuilder::ParseItemSetBuilder(
         first_set.insert(current_symbol);
       } else if (processed_non_terminals.insert(current_symbol.index).second) {
         for (const Production &production : grammar.variables[current_symbol.index].productions) {
-          if (!production.empty()) {
+          if (!production.empty() && !production[0].is_excluded) {
             symbols_to_process.push_back(production[0].symbol);
           }
         }
@@ -98,7 +98,7 @@ ParseItemSetBuilder::ParseItemSetBuilder(
         last_set.insert(current_symbol);
       } else if (processed_non_terminals.insert(current_symbol.index).second) {
         for (const Production &production : grammar.variables[current_symbol.index].productions) {
-          if (!production.empty()) {
+          if (!production.empty() && !production.back().is_excluded) {
             symbols_to_process.push_back(production.back().symbol);
           }
         }

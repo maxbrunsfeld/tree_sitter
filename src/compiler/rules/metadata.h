@@ -31,12 +31,13 @@ struct MetadataParams {
   bool is_string;
   bool is_active;
   bool is_main_token;
+  bool is_excluded;
   Alias alias;
 
   inline MetadataParams() :
     precedence{0}, dynamic_precedence{0}, associativity{AssociativityNone},
     has_precedence{false}, has_associativity{false}, is_token{false}, is_string{false},
-    is_active{false}, is_main_token{false} {}
+    is_active{false}, is_main_token{false}, is_excluded{false} {}
 
   inline bool operator==(const MetadataParams &other) const {
     return (
@@ -49,6 +50,7 @@ struct MetadataParams {
       is_string == other.is_string &&
       is_active == other.is_active &&
       is_main_token == other.is_main_token &&
+      is_excluded == other.is_excluded &&
       alias == other.alias
     );
   }
@@ -72,6 +74,7 @@ struct Metadata {
   static Metadata prec_dynamic(int precedence, Rule &&rule);
   static Metadata separator(Rule &&rule);
   static Metadata main_token(Rule &&rule);
+  static Metadata exclude(Rule &&rule);
   static Metadata alias(std::string &&value, bool is_named, Rule &&rule);
 
   bool operator==(const Metadata &other) const;

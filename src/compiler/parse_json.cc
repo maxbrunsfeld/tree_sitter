@@ -201,6 +201,15 @@ Result<Rule> parse_rule_json(json_value *rule_json) {
     return Rule(Metadata::prec_dynamic(precedence_json.u.integer, move(result.value)));
   }
 
+  if (type == "EXCLUDE") {
+    json_value content_json = rule_json->operator[]("content");
+    auto result = parse_rule_json(&content_json);
+    if (!result.ok()) {
+      return "Invalid exclude content: " + result.error;
+    }
+    return Rule(Metadata::exclude(move(result.value)));
+  }
+
   if (type == "ALIAS") {
     json_value value_json = rule_json->operator[]("value");
     if (value_json.type != json_string) {
