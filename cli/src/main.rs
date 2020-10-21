@@ -134,6 +134,7 @@ fn run() -> error::Result<()> {
                 )
                 .arg(Arg::with_name("scope").long("scope").takes_value(true))
                 .arg(Arg::with_name("html").long("html").short("h"))
+                .arg(Arg::with_name("snippet").long("snippet").short("s"))
                 .arg(Arg::with_name("time").long("time").short("t"))
                 .arg(Arg::with_name("q").short("q")),
         )
@@ -307,7 +308,9 @@ fn run() -> error::Result<()> {
         let time = matches.is_present("time");
         let paths = collect_paths(matches.value_of("paths-file"), matches.values_of("paths"))?;
         let html_mode = matches.is_present("html");
-        if html_mode {
+        let html_snippet_mode = matches.is_present("snippet");
+
+        if html_mode && ! html_snippet_mode {
             println!("{}", highlight::HTML_HEADER);
         }
 
@@ -334,8 +337,11 @@ fn run() -> error::Result<()> {
 
             if let Some(highlight_config) = language_config.highlight_config(language)? {
                 let source = fs::read(path)?;
-                if html_mode {
+                if html_mode || html_snippet_mode {
                     highlight::html(&loader, &config.theme, &source, highlight_config, time)?;
+                    if ! html_snippet_mode {
+                        println!("{}", highlight::HTML_FOOTER);
+                    }
                 } else {
                     highlight::ansi(&loader, &config.theme, &source, highlight_config, time)?;
                 }
