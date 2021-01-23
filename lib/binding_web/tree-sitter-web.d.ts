@@ -80,6 +80,8 @@ declare module 'web-tree-sitter' {
       namedChild(index: number): SyntaxNode | null;
       childForFieldId(fieldId: number): SyntaxNode | null;
       childForFieldName(fieldName: string): SyntaxNode | null;
+      childrenForFieldId(fieldId: number): Array<SyntaxNode>;
+      childrenForFieldName(fieldName: string): Array<SyntaxNode>;
 
       descendantForIndex(index: number): SyntaxNode;
       descendantForIndex(startIndex: number, endIndex: number): SyntaxNode;
@@ -127,7 +129,7 @@ declare module 'web-tree-sitter' {
     }
 
     class Language {
-      static load(path: string): Promise<Language>;
+      static load(path: string, nodeTypes?: object): Promise<Language>;
 
       readonly version: number;
       readonly fieldCount: number;
