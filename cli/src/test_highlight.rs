@@ -57,7 +57,8 @@ fn test_highlights_indented(loader: &Loader, directory: &Path, indent_level: u32
         let test_file_name = highlight_test_file.file_name();
 
         print_indent(indent_level);
-        if test_file_path.is_dir() {
+        if test_file_path.is_dir() 
+            && !test_file_path.read_dir()?.next().is_none() {
             println!("{}:", test_file_name.into_string().unwrap());
             match test_highlights_indented(loader, &test_file_path, indent_level + 1) {
                 Ok(()) => (),
