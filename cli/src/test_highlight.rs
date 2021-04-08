@@ -45,32 +45,42 @@ pub fn test_highlights(loader: &Loader, directory: &Path) -> Result<()> {
         let highlight_test_file = highlight_test_file?;
         let test_file_path = highlight_test_file.path();
         let test_file_name = highlight_test_file.file_name();
-        let (language, language_config) = loader
-            .language_configuration_for_file_name(&test_file_path)?
-            .ok_or_else(|| format!("No language found for path {:?}", test_file_path))?;
-        let highlight_config = language_config
-            .highlight_config(language)?
-            .ok_or_else(|| format!("No highlighting config found for {:?}", test_file_path))?;
-        match test_highlight(
-            &loader,
-            &mut highlighter,
-            highlight_config,
-            fs::read(&test_file_path)?.as_slice(),
-        ) {
-            Ok(assertion_count) => {
-                println!(
-                    "  ✓ {} ({} assertions)",
-                    Colour::Green.paint(test_file_name.to_string_lossy().as_ref()),
-                    assertion_count
-                );
+        if test_file_path.is_dir() {
+            match test_highlights(loader, &test_file_path) {
+                Err(_) => {
+                    failed = true;
+                }
+                Ok(()) => ()
             }
-            Err(e) => {
-                println!(
-                    "  ✗ {}",
-                    Colour::Red.paint(test_file_name.to_string_lossy().as_ref())
-                );
-                println!("    {}", e.message());
-                failed = true;
+        }
+        else {
+            let (language, language_config) = loader
+                .language_configuration_for_file_name(&test_file_path)?
+                .ok_or_else(|| format!("No language found for path {:?}", test_file_path))?;
+            let highlight_config = language_config
+                .highlight_config(language)?
+                .ok_or_else(|| format!("No highlighting config found for {:?}", test_file_path))?;
+            match test_highlight(
+                &loader,
+                &mut highlighter,
+                highlight_config,
+                fs::read(&test_file_path)?.as_slice(),
+            ) {
+                Ok(assertion_count) => {
+                    println!(
+                        "  ✓ {} ({} assertions)",
+                        Colour::Green.paint(test_file_name.to_string_lossy().as_ref()),
+                        assertion_count
+                    );
+                }
+                Err(e) => {
+                    println!(
+                        "  ✗ {}",
+                        Colour::Red.paint(test_file_name.to_string_lossy().as_ref())
+                    );
+                    println!("    {}", e.message());
+                    failed = true;
+                }
             }
         }
     }
